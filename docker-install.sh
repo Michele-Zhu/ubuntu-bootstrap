@@ -33,7 +33,7 @@ EOF
 sudo apt update
 
 # install from apt
-sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # add current user to docker group
 # warning this has security implications
