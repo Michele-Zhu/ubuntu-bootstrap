@@ -1,38 +1,224 @@
 #!/usr/bin/env bash
-# Exit if it fails
-set -euo pipefail
+# Exit on error, undefined variables, and failed pipes
+set -Eeuo pipefail
 trap 'echo; echo "ERROR: bootstrap failed at line $LINENO"; read -rp "Press Enter to close..."' ERR
 
-echo "setting up things for my new Linux (Ubuntu) system"
+# --------------------------------------------------
+# Configuration
+# --------------------------------------------------
 
-sudo apt update
-sudo apt upgrade -y
+SCRIPT_NAME="$(basename "$0")"
 
-# Installing essentials
-sudo apt install -y \
-    git \
-    curl
-    
-sudo apt install -y wget gpg 
+SELECTION=false
+INSTALL_ALL=false
 
-# google chrome
-sudo apt install google-chrome-stable 
-    
-# gnome-extensions
-sudo apt install gnome-browser-connector
+INSTALL_ESSENTIALS=false
+INSTALL_DOCKER=false
+INSTALL_CHROME=false
+INSTALL_SUBLIME=false
+INSTALL_VSCODE=false
+INSTALL_GNOME=false
+INSTALL_AUDIO=false
+INSTALL_VLC=false
+INSTALL_SPICETIFY=false
+INSTALL_TEAMS=false
+INSTALL_CLAUDE=false
 
-# Sublime text
-wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo tee /etc/apt/keyrings/sublimehq-pub.asc > /dev/null
-echo -e 'Types: deb\nURIs: https://download.sublimetext.com/\nSuites: apt/stable/\nSigned-By: /etc/apt/keyrings/sublimehq-pub.asc' | sudo tee /etc/apt/sources.list.d/sublime-text.sources
-sudo apt update
-sudo apt install -y sublime-text
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# --------------------------------------------------
+# Help
+# --------------------------------------------------
 
-# vscode
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
-    | gpg --dearmor \
-    | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
+usage() {
+    cat <<EOF
+Usage:
+  $SCRIPT_NAME --all
+  $SCRIPT_NAME --selection [OPTIONS]
 
-sudo tee /etc/apt/sources.list.d/vscode.sources > /dev/null <<'EOF'
+Main options:
+  --all                 Install everything
+  --selection           Enable selective installation
+
+Selection options (require --selection):
+  --essentials          Install git, curl, wget and gpg
+  --docker              Install Docker
+  --chrome              Install Google Chrome
+  --sublime             Install Sublime Text
+  --vscode              Install Visual Studio Code
+  --gnome-extensions    Install GNOME Browser Connector
+  --audio               Install PulseAudio Volume Control
+  --vlc                 Install VLC
+  --spicetify           Install Spicetify
+  --claude              Install Claude
+
+Other options:
+  -h, --help            Display this help
+
+Examples:
+  $SCRIPT_NAME --all
+  $SCRIPT_NAME --selection --essentials
+  $SCRIPT_NAME --selection --chrome --sublime
+  $SCRIPT_NAME --selection --docker --chrome --vscode
+  $SCRIPT_NAME --selection --essentials --audio --vlc
+
+EOF
+}
+
+# --------------------------------------------------
+# Argument parsing
+# --------------------------------------------------
+
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 0
+fi
+
+for arg in "$@"; do
+    case "$arg" in
+        --all)
+            INSTALL_ALL=true
+            ;;
+        --selection)
+            SELECTION=true
+            ;;
+        --essentials)
+            INSTALL_ESSENTIALS=true
+            ;;
+        --docker)
+            INSTALL_DOCKER=true
+            ;;
+        --chrome)
+            INSTALL_CHROME=true
+            ;;
+        --sublime)
+            INSTALL_SUBLIME=true
+            ;;
+        --vscode)
+            INSTALL_VSCODE=true
+            ;;
+        --gnome-extensions)
+            INSTALL_GNOME=true
+            ;;
+        --audio)
+            INSTALL_AUDIO=true
+            ;;
+        --vlc)
+            INSTALL_VLC=true
+            ;;
+        --spicetify)
+            INSTALL_SPICETIFY=true
+            ;;
+        --teams)
+            INSTALL_TEAMS=true
+            ;;
+        --claude)
+            INSTALL_CLAUDE=true
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "ERROR: Unknown option: $arg"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# --------------------------------------------------
+# Validate arguments
+# --------------------------------------------------
+
+if [[ "$INSTALL_ALL" == true && "$SELECTION" == true ]]; then
+    echo "ERROR: --all and --selection cannot be used together."
+    exit 1
+fi
+
+if [[ "$INSTALL_ALL" == true ]]; then
+    INSTALL_ESSENTIALS=true
+    INSTALL_DOCKER=true
+    INSTALL_CHROME=true
+    INSTALL_SUBLIME=true
+    INSTALL_VSCODE=true
+    INSTALL_GNOME=true
+    INSTALL_AUDIO=true
+    INSTALL_VLC=true
+    INSTALL_SPICETIFY=true
+    INSTALL_TEAMS=true
+    INSTALL_CLAUDE=true
+fi
+
+if [[ "$SELECTION" == false && "$INSTALL_ALL" == false ]]; then
+    echo "ERROR: You must specify --all or --selection."
+    usage
+    exit 1
+fi
+
+if [[ "$SELECTION" == true ]] &&
+   [[ "$INSTALL_ESSENTIALS" == false &&
+      "$INSTALL_DOCKER" == false &&
+      "$INSTALL_CHROME" == false &&
+      "$INSTALL_SUBLIME" == false &&
+      "$INSTALL_VSCODE" == false &&
+      "$INSTALL_GNOME" == false &&
+      "$INSTALL_AUDIO" == false &&
+      "$INSTALL_SPICETIFY" == false &&
+      "$INSTALL_VLC" == false &&
+      "$INSTALL_TEAMS" == false &&
+      "$INSTALL_CLAUDE" == false ]]; then
+    echo "ERROR: Select at least one component."
+    usage
+    exit 1
+fi
+
+# --------------------------------------------------
+# Installation functions
+# --------------------------------------------------
+
+echo "Updating system packages..."
+sudo apt-get update
+sudo apt-get upgrade -y
+
+install_essentials() {
+    echo "Installing essentials..."
+    sudo apt-get install -y git curl wget gpg
+}
+
+install_gitlab() {
+    echo "Installing gitlab"
+}
+
+install_chrome() {
+    echo "Installing Google Chrome..."
+    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+
+    apt update
+    apt install google-chrome-stable
+}
+
+install_gnome_extensions(){
+    echo "Installing gnome-browser-connector"
+    sudo apt install gnome-browser-connector
+}
+
+install_sublime() {
+    echo "Installing sublime text"
+    wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo tee /etc/apt/keyrings/sublimehq-pub.asc > /dev/null
+    echo -e 'Types: deb\nURIs: https://download.sublimetext.com/\nSuites: apt/stable/\nSigned-By: /etc/apt/keyrings/sublimehq-pub.asc' | sudo tee /etc/apt/sources.list.d/sublime-text.sources
+    sudo apt update
+    sudo apt install -y sublime-text
+}
+
+install_vscode() {
+    echo "Installing vscode"
+    # vscode
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+        | gpg --dearmor \
+        | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
+
+    sudo tee /etc/apt/sources.list.d/vscode.sources > /dev/null <<'EOF'
 Types: deb
 URIs: https://packages.microsoft.com/repos/code
 Suites: stable
@@ -40,19 +226,81 @@ Components: main
 Architectures: amd64,arm64,armhf
 Signed-By: /usr/share/keyrings/microsoft.gpg
 EOF
+    sudo apt-get update
+    sudo apt-get install -y code
+}
 
-sudo apt-get update
-sudo apt-get install -y code
+install_audio(){
+    echo "Installing PulseAudio Volume Control..."
+    sudo apt install -y pavucontrol
+}
 
-# PulseAudio Volume Control
-sudo apt install -y pavucontrol
+install_vlc() {
+    echo "Installing VLC..."
+    sudo apt-get install -y vlc
+}
 
-# VLC
-sudo apt install -y vlc
+install_docker_engine(){
+    echo "Installing docker engine"
+    if [[ ! -f "$SCRIPT_DIR/docker-install.sh" ]]; then
+        echo "ERROR: docker-install.sh not found!"
+        exit 1
+    fi
 
-# Docker-Engine, also do this manually
+    bash "$SCRIPT_DIR/docker-install.sh"
+}
 
-    
-# pyenv
-# For now do it manually since you have to setup the shells
-# curl https://pyenv.run | bash
+install_spicetify(){
+    echo "Installing spotify and spicetify"
+    if [[ ! -f "$SCRIPT_DIR/spicetify-install.sh" ]]; then
+        echo "ERROR: spicetify-install.sh not found!"
+        exit 1
+    fi
+
+    bash "$SCRIPT_DIR/spicetify-install.sh"
+}
+
+install_teams(){
+    snap install teams-for-linux
+}
+
+install_claude(){
+    # Download signing key and verify with gpg
+    apt install curl gnupg
+    install -d -m 0755 /etc/apt/keyrings
+    curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \
+      -o /etc/apt/keyrings/claude-code.asc
+    echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+      | sudo tee /etc/apt/sources.list.d/claude-code.list
+    apt update
+    apt install claude-code
+}
+
+# --------------------------------------------------
+# Execute selected installations
+# --------------------------------------------------
+
+[[ "$INSTALL_ESSENTIALS" == true ]] && install_essentials
+[[ "$INSTALL_CHROME" == true ]] && install_chrome
+[[ "$INSTALL_GNOME" == true ]] && install_gnome_extensions
+[[ "$INSTALL_SUBLIME" == true ]] && install_sublime
+[[ "$INSTALL_VSCODE" == true ]] && install_vscode
+[[ "$INSTALL_AUDIO" == true ]] && install_audio
+[[ "$INSTALL_VLC" == true ]] && install_vlc
+[[ "$INSTALL_DOCKER" == true ]] && install_docker_engine
+[[ "$INSTALL_TEAMS" == true ]] && install_teams
+[[ "$INSTALL_CLAUDE" == true ]] && install_claude
+
+# --------------------------------------------------
+# Remove obsolete packages
+# --------------------------------------------------
+apt autoremove
+
+# --------------------------------------------------
+# Finished
+# --------------------------------------------------
+
+echo
+echo "========================================"
+echo " Ubuntu setup completed successfully!"
+echo "========================================"

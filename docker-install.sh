@@ -5,8 +5,8 @@ trap 'echo; echo "ERROR: docker-install failed at line $LINENO"; read -rp "Press
 
 echo "setting up Docker "
 
-sudo apt update
-sudo apt upgrade -y
+# sudo apt update
+# sudo apt upgrade -y
 
 # old installtion removal
 # sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc docker-buildx podman-docker containerd runc | cut -f1)

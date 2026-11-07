@@ -38,7 +38,7 @@ Brief description of what this is about.
 - 
 EOF
 
-# Markdown template
+# script template
 cat > ~/Templates/"script.sh" <<'EOF'
 #!/usr/bin/env bash
 
@@ -54,3 +54,14 @@ main "$@"
 EOF
 
 echo "Done!"
+
+# cpp template
+cat > ~/Templates/"main.cpp" << 'EOF'
+#include <iostream>
+
+int main(){
+    using namespace std;
+    cout << "Hello World";
+    return 0;
+}
+EOF

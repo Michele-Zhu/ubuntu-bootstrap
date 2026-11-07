@@ -11,8 +11,10 @@ Target to automate:
 - tmux
 - linux templates
 
-P.S. set the scripts to executable and run them as
-./script.sh
+## Command to run full install
+```
+sudo bash ./bootstrap.sh --all
+```
 
 If you want to spawn as child shell
 bash filename
