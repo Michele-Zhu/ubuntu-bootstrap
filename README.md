@@ -10,6 +10,7 @@ Target to automate:
 - gnome configuration
 - tmux
 - linux templates
+- yq, glab, git-lfs
 
 ## Command to run full install
 ```
