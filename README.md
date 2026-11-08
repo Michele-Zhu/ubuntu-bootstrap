@@ -16,7 +16,7 @@ Tested releases:
 - Ubuntu26.06 LTS (AMD64)
 
 TODO:
-- make the installation architecture independent
+- make the installation architecture independent (use env variable or options)
 
 ## Command to run full install
 ```
