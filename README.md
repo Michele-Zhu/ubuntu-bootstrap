@@ -6,15 +6,16 @@ Also for considency I'm trying to get everything done with apt
 Target to automate:
 - git alias
 - cli tools
-- slack/discord 
 - gnome configuration
 - tmux
-- linux templates
 - yq, glab, git-lfs
+- pyenv (deprecated)
+- uv
 
 ## Command to run full install
 ```
 sudo bash ./bootstrap.sh --all
+sudo bash ./templates.sh
 ```
 
 If you want to spawn as child shell
