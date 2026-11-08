@@ -12,6 +12,9 @@ Target to automate:
 - pyenv (deprecated)
 - uv
 
+Tested releases:
+- Ubuntu26.06 LTS
+
 ## Command to run full install
 ```
 sudo bash ./bootstrap.sh --all
