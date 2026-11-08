@@ -13,6 +13,9 @@ SELECTION=false
 INSTALL_ALL=false
 
 INSTALL_ESSENTIALS=false
+INSTALL_YQ=false
+INSTALL_GITLFS=false
+INSTALL_GITLAB=false
 INSTALL_DOCKER=false
 INSTALL_CHROME=false
 INSTALL_SUBLIME=false
@@ -41,6 +44,9 @@ Main options:
 
 Selection options (require --selection):
   --essentials          Install git, curl, wget and gpg
+  --yq                  Install yq
+  --git-lfs             Install git-lfs
+  --glab                Install gitlab cli
   --docker              Install Docker
   --chrome              Install Google Chrome
   --sublime             Install Sublime Text
@@ -83,6 +89,15 @@ for arg in "$@"; do
             ;;
         --essentials)
             INSTALL_ESSENTIALS=true
+            ;;
+        --yq)
+            INSTALL_YQ=true
+            ;;
+        --git-lfs)
+            INSTALL_GITLFS=true
+            ;;
+        --glab)
+            INSTALL_GLAB=true
             ;;
         --docker)
             INSTALL_DOCKER=true
@@ -137,6 +152,9 @@ fi
 
 if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_ESSENTIALS=true
+    INSTALL_YQ=true
+    INSTALL_GITLFS=true
+    INSTALL_GLAB=true
     INSTALL_DOCKER=true
     INSTALL_CHROME=true
     INSTALL_SUBLIME=true
@@ -157,6 +175,9 @@ fi
 
 if [[ "$SELECTION" == true ]] &&
    [[ "$INSTALL_ESSENTIALS" == false &&
+      "$INSTALL_YQ" == false &&
+      "$INSTALL_GITLFS" == false &&
+      "$INSTALL_GLAB" == false &&
       "$INSTALL_DOCKER" == false &&
       "$INSTALL_CHROME" == false &&
       "$INSTALL_SUBLIME" == false &&
@@ -185,8 +206,23 @@ install_essentials() {
     sudo apt-get install -y git curl wget gpg
 }
 
-install_gitlab() {
+# not tested yet
+install_yq(){
+    echo "Installing yq"
+    wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
+    chmod +x /usr/local/bin/yq
+}
+
+# not tested yet
+install_gitlfs(){
+    echo "Installing git-lfs"
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+}
+
+# not tested yet
+install_glab() {
     echo "Installing gitlab"
+    apt install glab
 }
 
 install_chrome() {
@@ -281,6 +317,9 @@ install_claude(){
 # --------------------------------------------------
 
 [[ "$INSTALL_ESSENTIALS" == true ]] && install_essentials
+[[ "$INSTALL_YQ" == true ]] && install_yq
+[[ "$INSTALL_GITLFS" == true ]] && install_gitlfs
+[[ "$INSTALL_GLAB" == true ]] && install_glab
 [[ "$INSTALL_CHROME" == true ]] && install_chrome
 [[ "$INSTALL_GNOME" == true ]] && install_gnome_extensions
 [[ "$INSTALL_SUBLIME" == true ]] && install_sublime
