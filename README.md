@@ -31,7 +31,7 @@ git config --global user.email "<email>"
 git config --global user.name
 git config --global user.email
 ```
-
+## Extra
 Notes:
 If you want to spawn as child shell
 ```bash <filename>```
