@@ -18,5 +18,6 @@ sudo bash ./bootstrap.sh --all
 sudo bash ./templates.sh
 ```
 
+Notes:
 If you want to spawn as child shell
-bash filename
+```bash <filename>```
