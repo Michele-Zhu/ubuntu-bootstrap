@@ -13,7 +13,7 @@ Target to automate:
 - uv
 
 Tested releases:
-- Ubuntu26.06 LTS
+- Ubuntu26.06 LTS (AMD64)
 
 ## Command to run full install
 ```
