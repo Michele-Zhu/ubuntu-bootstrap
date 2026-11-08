@@ -17,6 +17,20 @@ Target to automate:
 sudo bash ./bootstrap.sh --all
 sudo bash ./templates.sh
 ```
+## Git Alias and config
+Aliases are stored under the file /.gitconfig
+```
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.st status
+```
+```
+git config --global user.name "<username>"
+git config --global user.email "<email>"
+git config --global user.name
+git config --global user.email
+```
 
 Notes:
 If you want to spawn as child shell
