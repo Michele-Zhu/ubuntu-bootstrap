@@ -15,6 +15,9 @@ Target to automate:
 Tested releases:
 - Ubuntu26.06 LTS (AMD64)
 
+TODO:
+- make the installation architecture independent
+
 ## Command to run full install
 ```
 sudo bash ./bootstrap.sh --all
