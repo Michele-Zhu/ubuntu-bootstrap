@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+    #!/usr/bin/env bash
 # Exit on error, undefined variables, and failed pipes
 set -Eeuo pipefail
 trap 'echo; echo "ERROR: bootstrap failed at line $LINENO"; read -rp "Press Enter to close..."' ERR
@@ -27,6 +27,9 @@ INSTALL_SPICETIFY=false
 INSTALL_TEAMS=false
 INSTALL_CLAUDE_CODE=false
 INSTALL_OBSIDIAN=false
+
+YELLOW='\e[33m'
+TXT_COLOR_RESET='\e[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # --------------------------------------------------
@@ -201,53 +204,57 @@ if [[ "$SELECTION" == true ]] &&
 fi
 
 # --------------------------------------------------
+# Helper
+# --------------------------------------------------
+info() { echo -e "\n${YELLOW}$*${TXT_COLOR_RESET}"; }
+# --------------------------------------------------
 # Installation functions
 # --------------------------------------------------
 
-echo "Updating system packages..."
+info "Updating system packages..."
 sudo apt-get update
 sudo apt-get upgrade -y
 
 install_essentials() {
-    echo "Installing essentials..."
+    info "Installing essentials..."
     sudo apt-get install -y git curl wget gpg
 }
 
 # not tested yet
 install_yq(){
-    echo "Installing yq"
+    info "Installing yq..."
     wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
     chmod +x /usr/local/bin/yq
 }
 
 # not tested yet
 install_gitlfs(){
-    echo "Installing git-lfs"
+    info "Installing git-lfs..."
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
 }
 
 # not tested yet
 install_glab() {
-    echo "Installing gitlab"
+    info "Installing gitlab..."
     apt install glab
 }
 
 install_chrome() {
-    echo "Installing Google Chrome..."
+    info "Installing Google Chrome..."
     curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
 
     apt update
-    apt install google-chrome-stable
+    apt install -y google-chrome-stable
 }
 
 install_gnome_extensions(){
-    echo "Installing gnome-browser-connector"
+    info "Installing gnome-browser-connector..."
     sudo apt install gnome-browser-connector
 }
 
 install_sublime() {
-    echo "Installing sublime text"
+    info "Installing sublime text..."
     wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo tee /etc/apt/keyrings/sublimehq-pub.asc > /dev/null
     echo -e 'Types: deb\nURIs: https://download.sublimetext.com/\nSuites: apt/stable/\nSigned-By: /etc/apt/keyrings/sublimehq-pub.asc' | sudo tee /etc/apt/sources.list.d/sublime-text.sources
     sudo apt update
@@ -255,7 +262,7 @@ install_sublime() {
 }
 
 install_vscode() {
-    echo "Installing vscode"
+    info "Installing vscode..."
     # vscode
     wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
         | gpg --dearmor \
@@ -274,17 +281,17 @@ EOF
 }
 
 install_audio(){
-    echo "Installing PulseAudio Volume Control..."
+    info "Installing PulseAudio Volume Control..."
     sudo apt install -y pavucontrol
 }
 
 install_vlc() {
-    echo "Installing VLC..."
+    info "Installing VLC..."
     sudo apt-get install -y vlc
 }
 
 install_docker_engine(){
-    echo "Installing docker engine"
+    info "Installing docker engine..."
     if [[ ! -f "$SCRIPT_DIR/docker-install.sh" ]]; then
         echo "ERROR: docker-install.sh not found!"
         exit 1
@@ -294,20 +301,23 @@ install_docker_engine(){
 }
 
 install_spicetify(){
-    echo "Installing spotify and spicetify"
-    if [[ ! -f "$SCRIPT_DIR/spicetify-install.sh" ]]; then
-        echo "ERROR: spicetify-install.sh not found!"
-        exit 1
-    fi
+    info "Installing spotify and spicetify...\n"
+    echo "Warning: Nothing has been done here, run the script for spotify manually afterwards"
+    # if [[ ! -f "$SCRIPT_DIR/spicetify-install.sh" ]]; then
+    #    echo "ERROR: spicetify-install.sh not found!"
+    #    exit 1
+    # fi
 
-    bash "$SCRIPT_DIR/spicetify-install.sh"
+    # bash "$SCRIPT_DIR/spicetify-install.sh"
 }
 
 install_teams(){
+    info "Installing teams-for-linux..."
     snap install teams-for-linux
 }
 
 install_claude_code(){
+    info "Installing claude-code..."
     curl -fsSL https://claude.ai/install.sh | bash
 }
 
@@ -320,7 +330,8 @@ install_claude_code(){
 #}
 
 install_obsidian(){
-    cd SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    info "Installing Obsidian..."
+    cd $SCRIPT_DIR
     URL=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
       | grep -o 'https://[^"]*_amd64\.deb' | head -n1)
     wget "$URL"
@@ -342,14 +353,16 @@ install_obsidian(){
 [[ "$INSTALL_AUDIO" == true ]] && install_audio
 [[ "$INSTALL_VLC" == true ]] && install_vlc
 [[ "$INSTALL_DOCKER_ENGINE" == true ]] && install_docker_engine
+[[ "$INSTALL_SPICETIFY" == true ]] && install_spicetify
 [[ "$INSTALL_TEAMS" == true ]] && install_teams
 [[ "$INSTALL_CLAUDE_CODE" == true ]] && install_claude_code
 [[ "$INSTALL_OBSIDIAN" == true ]] && install_obsidian
 
 # --------------------------------------------------
-# Remove obsolete packages
+# Remove obsolete packages && mordernize sources
 # --------------------------------------------------
 apt autoremove -y
+apt modernize-sources
 
 # --------------------------------------------------
 # Finished
