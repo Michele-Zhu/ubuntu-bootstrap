@@ -1,4 +1,4 @@
-    #!/usr/bin/env bash
+# !/usr/bin/env bash
 # Exit on error, undefined variables, and failed pipes
 set -Eeuo pipefail
 trap 'echo; echo "ERROR: bootstrap failed at line $LINENO"; read -rp "Press Enter to close..."' ERR
