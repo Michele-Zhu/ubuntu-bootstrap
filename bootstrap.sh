@@ -320,7 +320,7 @@ install_claude_code(){
 #}
 
 install_obsidian(){
-    cd ~/Downloads
+    cd SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     URL=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
       | grep -o 'https://[^"]*_amd64\.deb' | head -n1)
     wget "$URL"
