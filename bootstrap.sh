@@ -16,7 +16,7 @@ INSTALL_ESSENTIALS=false
 INSTALL_YQ=false
 INSTALL_GITLFS=false
 INSTALL_GITLAB=false
-INSTALL_DOCKER=false
+INSTALL_DOCKER_ENGINE=false
 INSTALL_CHROME=false
 INSTALL_SUBLIME=false
 INSTALL_VSCODE=false
@@ -25,7 +25,7 @@ INSTALL_AUDIO=false
 INSTALL_VLC=false
 INSTALL_SPICETIFY=false
 INSTALL_TEAMS=false
-INSTALL_CLAUDE=false
+INSTALL_CLAUDE_CODE=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # --------------------------------------------------
@@ -47,7 +47,7 @@ Selection options (require --selection):
   --yq                  Install yq
   --git-lfs             Install git-lfs
   --glab                Install gitlab cli
-  --docker              Install Docker
+  --docker_engine       Install Docker Engine
   --chrome              Install Google Chrome
   --sublime             Install Sublime Text
   --vscode              Install Visual Studio Code
@@ -55,7 +55,7 @@ Selection options (require --selection):
   --audio               Install PulseAudio Volume Control
   --vlc                 Install VLC
   --spicetify           Install Spicetify
-  --claude              Install Claude
+  --claude_code         Install Claude Code
 
 Other options:
   -h, --help            Display this help
@@ -99,8 +99,8 @@ for arg in "$@"; do
         --glab)
             INSTALL_GLAB=true
             ;;
-        --docker)
-            INSTALL_DOCKER=true
+        --docker_engine)
+            INSTALL_DOCKER_ENGINE=true
             ;;
         --chrome)
             INSTALL_CHROME=true
@@ -126,8 +126,8 @@ for arg in "$@"; do
         --teams)
             INSTALL_TEAMS=true
             ;;
-        --claude)
-            INSTALL_CLAUDE=true
+        --claude_code)
+            INSTALL_CLAUDE_CODE=true
             ;;
         -h|--help)
             usage
@@ -300,17 +300,17 @@ install_teams(){
     snap install teams-for-linux
 }
 
-install_claude(){
-    # Download signing key and verify with gpg
-    apt install curl gnupg
-    install -d -m 0755 /etc/apt/keyrings
-    curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \
-      -o /etc/apt/keyrings/claude-code.asc
-    echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
-      | sudo tee /etc/apt/sources.list.d/claude-code.list
-    apt update
-    apt install claude-code
+install_claude_code(){
+    curl -fsSL https://claude.ai/install.sh | bash
 }
+
+#install_claude_desktop(){
+    # Download signing key and verify with gpg
+    # apt install curl gnupg
+    # curl -fsSLo /usr/share/keyrings/claude-desktop-archive-keyring.asc https://downloads.claude.ai/claude-desktop/key.asc
+    # echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/claude-desktop-archive-keyring.asc] https://downloads.claude.ai/claude-desktop/apt/stable stable main" | tee /etc/apt/sources.list.d/claude-desktop.list
+    # sudo apt update && sudo apt install claude-desktop
+#}
 
 # --------------------------------------------------
 # Execute selected installations
@@ -326,9 +326,9 @@ install_claude(){
 [[ "$INSTALL_VSCODE" == true ]] && install_vscode
 [[ "$INSTALL_AUDIO" == true ]] && install_audio
 [[ "$INSTALL_VLC" == true ]] && install_vlc
-[[ "$INSTALL_DOCKER" == true ]] && install_docker_engine
+[[ "$INSTALL_DOCKER_ENGINE" == true ]] && install_docker_engine
 [[ "$INSTALL_TEAMS" == true ]] && install_teams
-[[ "$INSTALL_CLAUDE" == true ]] && install_claude
+[[ "$INSTALL_CLAUDE_CODE" == true ]] && install_claude_code
 
 # --------------------------------------------------
 # Remove obsolete packages
