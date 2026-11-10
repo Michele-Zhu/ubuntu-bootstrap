@@ -26,6 +26,7 @@ INSTALL_VLC=false
 INSTALL_SPICETIFY=false
 INSTALL_TEAMS=false
 INSTALL_CLAUDE_CODE=false
+INSTALL_OBSIDIAN=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # --------------------------------------------------
@@ -56,6 +57,7 @@ Selection options (require --selection):
   --vlc                 Install VLC
   --spicetify           Install Spicetify
   --claude_code         Install Claude Code
+  --obsidian            Install Obsidian
 
 Other options:
   -h, --help            Display this help
@@ -129,6 +131,9 @@ for arg in "$@"; do
         --claude_code)
             INSTALL_CLAUDE_CODE=true
             ;;
+        --obsidian)
+            INSTALL_OBSIDIAN=true
+            ;;
         -h|--help)
             usage
             exit 0
@@ -165,6 +170,7 @@ if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_SPICETIFY=true
     INSTALL_TEAMS=true
     INSTALL_CLAUDE=true
+    INSTALL_OBSIDIAN=true
 fi
 
 if [[ "$SELECTION" == false && "$INSTALL_ALL" == false ]]; then
@@ -187,7 +193,8 @@ if [[ "$SELECTION" == true ]] &&
       "$INSTALL_SPICETIFY" == false &&
       "$INSTALL_VLC" == false &&
       "$INSTALL_TEAMS" == false &&
-      "$INSTALL_CLAUDE" == false ]]; then
+      "$INSTALL_CLAUDE" == false &&
+      "$INSTALL_OBSIDIAN" == false ]]; then
     echo "ERROR: Select at least one component."
     usage
     exit 1
@@ -312,6 +319,14 @@ install_claude_code(){
     # sudo apt update && sudo apt install claude-desktop
 #}
 
+install_obsidian(){
+    cd ~/Downloads
+    URL=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
+      | grep -o 'https://[^"]*_amd64\.deb' | head -n1)
+    wget "$URL"
+    apt install ./obsidian_*_amd64.deb
+}
+
 # --------------------------------------------------
 # Execute selected installations
 # --------------------------------------------------
@@ -329,6 +344,7 @@ install_claude_code(){
 [[ "$INSTALL_DOCKER_ENGINE" == true ]] && install_docker_engine
 [[ "$INSTALL_TEAMS" == true ]] && install_teams
 [[ "$INSTALL_CLAUDE_CODE" == true ]] && install_claude_code
+[[ "$INSTALL_OBSIDIAN" == true ]] && install_obsidian
 
 # --------------------------------------------------
 # Remove obsolete packages
@@ -342,4 +358,5 @@ apt autoremove -y
 echo
 echo "========================================"
 echo " Ubuntu setup completed successfully!"
+echo " You may need to clean up ~/Downloads folder"
 echo "========================================"
