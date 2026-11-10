@@ -17,6 +17,7 @@ Tested releases:
 
 TODO:
 - make the installation architecture independent (use env variable or options)
+- [Urgent] INSTALL UBUNTU DRIVERS AND NVIDIA DRIVERS 
 
 ## Command to run full install
 ```
