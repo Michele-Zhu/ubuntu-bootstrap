@@ -47,7 +47,7 @@ Main options:
   --selection           Enable selective installation
 
 Selection options (require --selection):
-  --essentials          Install git, curl, wget and gpg
+  --essentials          Install git, curl, wget, gpg and tmux
   --yq                  Install yq
   --git-lfs             Install git-lfs
   --glab                Install gitlab cli
@@ -217,7 +217,7 @@ sudo apt-get upgrade -y
 
 install_essentials() {
     info "Installing essentials..."
-    sudo apt-get install -y git curl wget gpg
+    sudo apt-get install -y git curl wget gpg tmux
 }
 
 # not tested yet
