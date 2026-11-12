@@ -362,7 +362,7 @@ install_obsidian(){
 # Remove obsolete packages && mordernize sources
 # --------------------------------------------------
 apt autoremove -y
-# apt modernize-sources # modernize duplicates the source. TODO: find a way to modernize without duplicating
+apt modernize-sources # modernize duplicates the source. TODO: find a way to modernize without duplicating
 
 # --------------------------------------------------
 # Finished
@@ -372,4 +372,5 @@ echo
 echo "========================================"
 echo " Ubuntu setup completed successfully!"
 echo " You may need to clean up ~/Downloads folder"
+echo " Warning: try to run apt update && upgrade, you may have to remove or rename some of old .list files"
 echo "========================================"
