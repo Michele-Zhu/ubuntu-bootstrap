@@ -362,7 +362,7 @@ install_obsidian(){
 # Remove obsolete packages && mordernize sources
 # --------------------------------------------------
 apt autoremove -y
-apt modernize-sources
+# apt modernize-sources # modernize duplicates the source. TODO: find a way to modernize without duplicating
 
 # --------------------------------------------------
 # Finished
