@@ -13,6 +13,7 @@ SELECTION=false
 INSTALL_ALL=false
 
 INSTALL_ESSENTIALS=false
+INSTALL_PYENV=false
 INSTALL_YQ=false
 INSTALL_GITLFS=false
 INSTALL_GITLAB=false
@@ -48,6 +49,7 @@ Main options:
 
 Selection options (require --selection):
   --essentials          Install git, curl, wget, gpg and tmux
+  --pyenv               Install pyenv and build dependencies
   --yq                  Install yq
   --git-lfs             Install git-lfs
   --glab                Install gitlab cli
@@ -94,6 +96,9 @@ for arg in "$@"; do
             ;;
         --essentials)
             INSTALL_ESSENTIALS=true
+            ;;
+        --pyenv)
+            INSTALL_PYENV=ture
             ;;
         --yq)
             INSTALL_YQ=true
@@ -161,6 +166,7 @@ fi
 if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_ESSENTIALS=true
     INSTALL_YQ=true
+    INSTALL_PYENV=true
     INSTALL_GITLFS=true
     INSTALL_GLAB=true
     INSTALL_DOCKER=true
@@ -185,6 +191,7 @@ fi
 if [[ "$SELECTION" == true ]] &&
    [[ "$INSTALL_ESSENTIALS" == false &&
       "$INSTALL_YQ" == false &&
+      "$INSTALL_PYENV" == false &&
       "$INSTALL_GITLFS" == false &&
       "$INSTALL_GLAB" == false &&
       "$INSTALL_DOCKER" == false &&
@@ -218,6 +225,15 @@ sudo apt-get upgrade -y
 install_essentials() {
     info "Installing essentials..."
     sudo apt-get install -y git curl wget gpg tmux
+}
+
+install_pyenv(){
+    info "Installing pyenv"
+    sudo apt install -y make build-essential libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev curl git \
+    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev libzstd-dev
+    curl -fsSL https://pyenv.run | bash
+    ~/.pyenv/bin/pyenv init --install
 }
 
 # not tested yet
@@ -344,6 +360,7 @@ install_obsidian(){
 
 [[ "$INSTALL_ESSENTIALS" == true ]] && install_essentials
 [[ "$INSTALL_YQ" == true ]] && install_yq
+[[ "$INSTALL_PYENV" == true ]] && install_pyenv
 [[ "$INSTALL_GITLFS" == true ]] && install_gitlfs
 [[ "$INSTALL_GLAB" == true ]] && install_glab
 [[ "$INSTALL_CHROME" == true ]] && install_chrome
