@@ -215,6 +215,16 @@ fi
 # Helper
 # --------------------------------------------------
 info() { echo -e "\n${YELLOW}$*${TXT_COLOR_RESET}"; }
+
+# Run one of the per-program install scripts in scripts/
+run_script() {
+    local script="$SCRIPT_DIR/scripts/$1"
+    if [[ ! -f "$script" ]]; then
+        echo "ERROR: $script not found!"
+        exit 1
+    fi
+    bash "$script"
+}
  
 # Privileges: run as the normal user, elevate per command
 # (same as typing "sudo apt install ..." in a terminal)
@@ -243,13 +253,9 @@ install_essentials() {
     sudo apt-get install -y git curl wget gpg tmux
 }
 
-install_pyenv(){
+install_pyenv() {
     info "Installing pyenv"
-    sudo apt install -y make build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev curl git \
-    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev libzstd-dev
-    curl -fsSL https://pyenv.run | bash
-    ~/.pyenv/bin/pyenv init --install
+    run_script pyenv-install.sh
 }
 
 # not tested yet
@@ -273,11 +279,7 @@ install_glab() {
 
 install_chrome() {
     info "Installing Google Chrome..."
-    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-
-    sudo apt update
-    sudo apt install -y google-chrome-stable
+    run_script chrome-install.sh
 }
 
 install_gnome_extensions(){
@@ -287,29 +289,12 @@ install_gnome_extensions(){
 
 install_sublime() {
     info "Installing sublime text..."
-    wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo tee /etc/apt/keyrings/sublimehq-pub.asc > /dev/null
-    echo -e 'Types: deb\nURIs: https://download.sublimetext.com/\nSuites: apt/stable/\nSigned-By: /etc/apt/keyrings/sublimehq-pub.asc' | sudo tee /etc/apt/sources.list.d/sublime-text.sources
-    sudo apt update
-    sudo apt install -y sublime-text
+    run_script sublime-install.sh
 }
 
 install_vscode() {
     info "Installing vscode..."
-    # vscode
-    wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
-        | gpg --dearmor \
-        | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
-
-    sudo tee /etc/apt/sources.list.d/vscode.sources > /dev/null <<'EOF'
-Types: deb
-URIs: https://packages.microsoft.com/repos/code
-Suites: stable
-Components: main
-Architectures: amd64,arm64,armhf
-Signed-By: /usr/share/keyrings/microsoft.gpg
-EOF
-    sudo apt-get update
-    sudo apt-get install -y code
+    run_script vscode-install.sh
 }
 
 install_audio(){
@@ -322,25 +307,15 @@ install_vlc() {
     sudo apt-get install -y vlc
 }
 
-install_docker_engine(){
+install_docker_engine() {
     info "Installing docker engine..."
-    if [[ ! -f "$SCRIPT_DIR/docker-install.sh" ]]; then
-        echo "ERROR: docker-install.sh not found!"
-        exit 1
-    fi
-
-    bash "$SCRIPT_DIR/docker-install.sh"
+    run_script docker-install.sh
 }
 
 install_spicetify(){
-    info "Installing spotify and spicetify...\n"
+    info "Installing spotify and spicetify..."
     echo "Warning: Nothing has been done here, run the script for spotify manually afterwards"
-    # if [[ ! -f "$SCRIPT_DIR/spicetify-install.sh" ]]; then
-    #    echo "ERROR: spicetify-install.sh not found!"
-    #    exit 1
-    # fi
-
-    # bash "$SCRIPT_DIR/spicetify-install.sh"
+    # run_script spicetify-install.sh
 }
 
 install_teams(){
@@ -361,13 +336,9 @@ install_claude_code(){
     # sudo apt update && sudo apt install claude-desktop
 #}
 
-install_obsidian(){
+install_obsidian() {
     info "Installing Obsidian..."
-    cd $SCRIPT_DIR
-    URL=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
-      | grep -o 'https://[^"]*_amd64\.deb' | head -n1)
-    wget "$URL"
-    sudo apt install ./obsidian_*_amd64.deb
+    run_script obsidian-install.sh
 }
 
 # --------------------------------------------------
@@ -403,6 +374,5 @@ sudo apt autoremove -y
 echo
 echo "========================================"
 echo " Ubuntu setup completed successfully!"
-echo " You may need to clean up ~/Downloads folder"
-echo " Warning: try to run apt update && upgrade, you may have to remove or rename some of old .list files"
+echo " You may need to clean up ~/Downloads folder, or the folder in which you ran this script"
 echo "========================================"

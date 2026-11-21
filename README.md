@@ -23,6 +23,7 @@ TODO:
 - audit each install function: confirm which commands really need root and keep `sudo` only on those (`sudo -v` at the start only caches the password, it does not elevate commands without `sudo`)
 
 ### Command to run full install
+Intended usage is from ~/Downloads folder
 ```
 bash ./bootstrap.sh --all
 bash ./templates.sh
