@@ -27,6 +27,9 @@ Intended usage is from ~/Downloads folder
 ```
 bash ./bootstrap.sh --all
 bash ./templates.sh
+
+\\ You can run a single install as
+sudo bash ./scripts/<install_file>.sh
 ```
 Run as your normal user, not with `sudo`: the script calls `sudo` itself for the steps that need root (apt, snap, writing to /etc and /usr/local/bin) and asks for your password once. Per-user tools (pyenv, claude code, templates) install into your home.
 
