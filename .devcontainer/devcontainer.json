@@ -1,0 +1,20 @@
+{
+  "name": "ubuntu-bootstrap",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "timonwong.shellcheck",
+        "mads-hartmann.bash-ide-vscode",
+        "foxundermoon.shell-format"
+      ],
+      "settings": {
+        "shellformat.path": "/usr/bin/shfmt",
+        "shellcheck.executablePath": "/usr/bin/shellcheck"
+      }
+    }
+  }
+}
