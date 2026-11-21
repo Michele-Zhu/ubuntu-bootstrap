@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 # Exit on error, undefined variables, and failed pipes
 set -Eeuo pipefail
 trap 'echo; echo "ERROR: bootstrap failed at line $LINENO"; read -rp "Press Enter to close..."' ERR
@@ -16,7 +16,7 @@ INSTALL_ESSENTIALS=false
 INSTALL_PYENV=false
 INSTALL_YQ=false
 INSTALL_GITLFS=false
-INSTALL_GITLAB=false
+INSTALL_GLAB=false
 INSTALL_DOCKER_ENGINE=false
 INSTALL_CHROME=false
 INSTALL_SUBLIME=false
@@ -61,6 +61,7 @@ Selection options (require --selection):
   --audio               Install PulseAudio Volume Control
   --vlc                 Install VLC
   --spicetify           Install Spicetify
+  --teams               Install Teams for Linux
   --claude_code         Install Claude Code
   --obsidian            Install Obsidian
 
@@ -98,7 +99,7 @@ for arg in "$@"; do
             INSTALL_ESSENTIALS=true
             ;;
         --pyenv)
-            INSTALL_PYENV=ture
+            INSTALL_PYENV=true
             ;;
         --yq)
             INSTALL_YQ=true
@@ -169,7 +170,7 @@ if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_PYENV=true
     INSTALL_GITLFS=true
     INSTALL_GLAB=true
-    INSTALL_DOCKER=true
+    INSTALL_DOCKER_ENGINE=true
     INSTALL_CHROME=true
     INSTALL_SUBLIME=true
     INSTALL_VSCODE=true
@@ -178,7 +179,7 @@ if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_VLC=true
     INSTALL_SPICETIFY=true
     INSTALL_TEAMS=true
-    INSTALL_CLAUDE=true
+    INSTALL_CLAUDE_CODE=true
     INSTALL_OBSIDIAN=true
 fi
 
@@ -194,7 +195,7 @@ if [[ "$SELECTION" == true ]] &&
       "$INSTALL_PYENV" == false &&
       "$INSTALL_GITLFS" == false &&
       "$INSTALL_GLAB" == false &&
-      "$INSTALL_DOCKER" == false &&
+      "$INSTALL_DOCKER_ENGINE" == false &&
       "$INSTALL_CHROME" == false &&
       "$INSTALL_SUBLIME" == false &&
       "$INSTALL_VSCODE" == false &&
@@ -203,7 +204,7 @@ if [[ "$SELECTION" == true ]] &&
       "$INSTALL_SPICETIFY" == false &&
       "$INSTALL_VLC" == false &&
       "$INSTALL_TEAMS" == false &&
-      "$INSTALL_CLAUDE" == false &&
+      "$INSTALL_CLAUDE_CODE" == false &&
       "$INSTALL_OBSIDIAN" == false ]]; then
     echo "ERROR: Select at least one component."
     usage
@@ -214,6 +215,31 @@ fi
 # Helper
 # --------------------------------------------------
 info() { echo -e "\n${YELLOW}$*${TXT_COLOR_RESET}"; }
+
+# Run one of the per-program install scripts in scripts/
+run_script() {
+    local script="$SCRIPT_DIR/scripts/$1"
+    if [[ ! -f "$script" ]]; then
+        echo "ERROR: $script not found!"
+        exit 1
+    fi
+    bash "$script"
+}
+ 
+# Privileges: run as the normal user, elevate per command
+# (same as typing "sudo apt install ..." in a terminal)
+if [[ $EUID -eq 0 ]]; then
+    echo "ERROR: Run this script as your normal user, without sudo."
+    echo "       It calls sudo itself where root is needed, so per-user tools"
+    echo "       (pyenv, claude code, ...) install into your home, not /root."
+    exit 1
+fi
+
+info "Some steps need root, sudo may ask for your password once..."
+sudo -v
+# Keep the sudo timestamp fresh until this script exits, so a long run
+# doesn't prompt again halfway through.
+while true; do sudo -n true; sleep 60; kill -0 "$$" 2>/dev/null || exit; done 2>/dev/null &
 # --------------------------------------------------
 # Installation functions
 # --------------------------------------------------
@@ -227,20 +253,16 @@ install_essentials() {
     sudo apt-get install -y git curl wget gpg tmux
 }
 
-install_pyenv(){
+install_pyenv() {
     info "Installing pyenv"
-    sudo apt install -y make build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev curl git \
-    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev libzstd-dev
-    curl -fsSL https://pyenv.run | bash
-    ~/.pyenv/bin/pyenv init --install
+    run_script pyenv-install.sh
 }
 
 # not tested yet
 install_yq(){
     info "Installing yq..."
-    wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
-    chmod +x /usr/local/bin/yq
+    sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
+    sudo chmod +x /usr/local/bin/yq
 }
 
 # not tested yet
@@ -252,16 +274,12 @@ install_gitlfs(){
 # not tested yet
 install_glab() {
     info "Installing gitlab..."
-    apt install glab
+    sudo apt install -y glab
 }
 
 install_chrome() {
     info "Installing Google Chrome..."
-    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-
-    apt update
-    apt install -y google-chrome-stable
+    run_script chrome-install.sh
 }
 
 install_gnome_extensions(){
@@ -271,29 +289,12 @@ install_gnome_extensions(){
 
 install_sublime() {
     info "Installing sublime text..."
-    wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo tee /etc/apt/keyrings/sublimehq-pub.asc > /dev/null
-    echo -e 'Types: deb\nURIs: https://download.sublimetext.com/\nSuites: apt/stable/\nSigned-By: /etc/apt/keyrings/sublimehq-pub.asc' | sudo tee /etc/apt/sources.list.d/sublime-text.sources
-    sudo apt update
-    sudo apt install -y sublime-text
+    run_script sublime-install.sh
 }
 
 install_vscode() {
     info "Installing vscode..."
-    # vscode
-    wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
-        | gpg --dearmor \
-        | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
-
-    sudo tee /etc/apt/sources.list.d/vscode.sources > /dev/null <<'EOF'
-Types: deb
-URIs: https://packages.microsoft.com/repos/code
-Suites: stable
-Components: main
-Architectures: amd64,arm64,armhf
-Signed-By: /usr/share/keyrings/microsoft.gpg
-EOF
-    sudo apt-get update
-    sudo apt-get install -y code
+    run_script vscode-install.sh
 }
 
 install_audio(){
@@ -306,30 +307,20 @@ install_vlc() {
     sudo apt-get install -y vlc
 }
 
-install_docker_engine(){
+install_docker_engine() {
     info "Installing docker engine..."
-    if [[ ! -f "$SCRIPT_DIR/docker-install.sh" ]]; then
-        echo "ERROR: docker-install.sh not found!"
-        exit 1
-    fi
-
-    bash "$SCRIPT_DIR/docker-install.sh"
+    run_script docker-install.sh
 }
 
 install_spicetify(){
-    info "Installing spotify and spicetify...\n"
+    info "Installing spotify and spicetify..."
     echo "Warning: Nothing has been done here, run the script for spotify manually afterwards"
-    # if [[ ! -f "$SCRIPT_DIR/spicetify-install.sh" ]]; then
-    #    echo "ERROR: spicetify-install.sh not found!"
-    #    exit 1
-    # fi
-
-    # bash "$SCRIPT_DIR/spicetify-install.sh"
+    # run_script spicetify-install.sh
 }
 
 install_teams(){
     info "Installing teams-for-linux..."
-    snap install teams-for-linux
+    sudo snap install teams-for-linux
 }
 
 install_claude_code(){
@@ -345,13 +336,9 @@ install_claude_code(){
     # sudo apt update && sudo apt install claude-desktop
 #}
 
-install_obsidian(){
+install_obsidian() {
     info "Installing Obsidian..."
-    cd $SCRIPT_DIR
-    URL=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
-      | grep -o 'https://[^"]*_amd64\.deb' | head -n1)
-    wget "$URL"
-    apt install ./obsidian_*_amd64.deb
+    run_script obsidian-install.sh
 }
 
 # --------------------------------------------------
@@ -376,10 +363,9 @@ install_obsidian(){
 [[ "$INSTALL_OBSIDIAN" == true ]] && install_obsidian
 
 # --------------------------------------------------
-# Remove obsolete packages && mordernize sources
+# Remove obsolete packages
 # --------------------------------------------------
-apt autoremove -y
-apt modernize-sources # modernize duplicates the source. TODO: find a way to modernize without duplicating
+sudo apt autoremove -y
 
 # --------------------------------------------------
 # Finished
@@ -388,6 +374,5 @@ apt modernize-sources # modernize duplicates the source. TODO: find a way to mod
 echo
 echo "========================================"
 echo " Ubuntu setup completed successfully!"
-echo " You may need to clean up ~/Downloads folder"
-echo " Warning: try to run apt update && upgrade, you may have to remove or rename some of old .list files"
+echo " You may need to clean up ~/Downloads folder, or the folder in which you ran this script"
 echo "========================================"
