@@ -1,4 +1,4 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 # Exit on error, undefined variables, and failed pipes
 set -Eeuo pipefail
 trap 'echo; echo "ERROR: bootstrap failed at line $LINENO"; read -rp "Press Enter to close..."' ERR
@@ -16,7 +16,7 @@ INSTALL_ESSENTIALS=false
 INSTALL_PYENV=false
 INSTALL_YQ=false
 INSTALL_GITLFS=false
-INSTALL_GITLAB=false
+INSTALL_GLAB=false
 INSTALL_DOCKER_ENGINE=false
 INSTALL_CHROME=false
 INSTALL_SUBLIME=false
@@ -98,7 +98,7 @@ for arg in "$@"; do
             INSTALL_ESSENTIALS=true
             ;;
         --pyenv)
-            INSTALL_PYENV=ture
+            INSTALL_PYENV=true
             ;;
         --yq)
             INSTALL_YQ=true
@@ -169,7 +169,7 @@ if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_PYENV=true
     INSTALL_GITLFS=true
     INSTALL_GLAB=true
-    INSTALL_DOCKER=true
+    INSTALL_DOCKER_ENGINE=true
     INSTALL_CHROME=true
     INSTALL_SUBLIME=true
     INSTALL_VSCODE=true
@@ -178,7 +178,7 @@ if [[ "$INSTALL_ALL" == true ]]; then
     INSTALL_VLC=true
     INSTALL_SPICETIFY=true
     INSTALL_TEAMS=true
-    INSTALL_CLAUDE=true
+    INSTALL_CLAUDE_CODE=true
     INSTALL_OBSIDIAN=true
 fi
 
@@ -194,7 +194,7 @@ if [[ "$SELECTION" == true ]] &&
       "$INSTALL_PYENV" == false &&
       "$INSTALL_GITLFS" == false &&
       "$INSTALL_GLAB" == false &&
-      "$INSTALL_DOCKER" == false &&
+      "$INSTALL_DOCKER_ENGINE" == false &&
       "$INSTALL_CHROME" == false &&
       "$INSTALL_SUBLIME" == false &&
       "$INSTALL_VSCODE" == false &&
@@ -203,7 +203,7 @@ if [[ "$SELECTION" == true ]] &&
       "$INSTALL_SPICETIFY" == false &&
       "$INSTALL_VLC" == false &&
       "$INSTALL_TEAMS" == false &&
-      "$INSTALL_CLAUDE" == false &&
+      "$INSTALL_CLAUDE_CODE" == false &&
       "$INSTALL_OBSIDIAN" == false ]]; then
     echo "ERROR: Select at least one component."
     usage
