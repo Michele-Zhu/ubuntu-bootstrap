@@ -61,6 +61,7 @@ Selection options (require --selection):
   --audio               Install PulseAudio Volume Control
   --vlc                 Install VLC
   --spicetify           Install Spicetify
+  --teams               Install Teams for Linux
   --claude_code         Install Claude Code
   --obsidian            Install Obsidian
 
@@ -214,6 +215,21 @@ fi
 # Helper
 # --------------------------------------------------
 info() { echo -e "\n${YELLOW}$*${TXT_COLOR_RESET}"; }
+ 
+# Privileges: run as the normal user, elevate per command
+# (same as typing "sudo apt install ..." in a terminal)
+if [[ $EUID -eq 0 ]]; then
+    echo "ERROR: Run this script as your normal user, without sudo."
+    echo "       It calls sudo itself where root is needed, so per-user tools"
+    echo "       (pyenv, claude code, ...) install into your home, not /root."
+    exit 1
+fi
+
+info "Some steps need root, sudo may ask for your password once..."
+sudo -v
+# Keep the sudo timestamp fresh until this script exits, so a long run
+# doesn't prompt again halfway through.
+while true; do sudo -n true; sleep 60; kill -0 "$$" 2>/dev/null || exit; done 2>/dev/null &
 # --------------------------------------------------
 # Installation functions
 # --------------------------------------------------
@@ -239,8 +255,8 @@ install_pyenv(){
 # not tested yet
 install_yq(){
     info "Installing yq..."
-    wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
-    chmod +x /usr/local/bin/yq
+    sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq &&\
+    sudo chmod +x /usr/local/bin/yq
 }
 
 # not tested yet
@@ -252,7 +268,7 @@ install_gitlfs(){
 # not tested yet
 install_glab() {
     info "Installing gitlab..."
-    apt install glab
+    sudo apt install -y glab
 }
 
 install_chrome() {
@@ -260,8 +276,8 @@ install_chrome() {
     curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
 
-    apt update
-    apt install -y google-chrome-stable
+    sudo apt update
+    sudo apt install -y google-chrome-stable
 }
 
 install_gnome_extensions(){
@@ -329,7 +345,7 @@ install_spicetify(){
 
 install_teams(){
     info "Installing teams-for-linux..."
-    snap install teams-for-linux
+    sudo snap install teams-for-linux
 }
 
 install_claude_code(){
@@ -351,7 +367,7 @@ install_obsidian(){
     URL=$(curl -s https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
       | grep -o 'https://[^"]*_amd64\.deb' | head -n1)
     wget "$URL"
-    apt install ./obsidian_*_amd64.deb
+    sudo apt install ./obsidian_*_amd64.deb
 }
 
 # --------------------------------------------------
@@ -376,10 +392,9 @@ install_obsidian(){
 [[ "$INSTALL_OBSIDIAN" == true ]] && install_obsidian
 
 # --------------------------------------------------
-# Remove obsolete packages && mordernize sources
+# Remove obsolete packages
 # --------------------------------------------------
-apt autoremove -y
-apt modernize-sources # modernize duplicates the source. TODO: find a way to modernize without duplicating
+sudo apt autoremove -y
 
 # --------------------------------------------------
 # Finished
